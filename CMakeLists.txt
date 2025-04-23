@@ -45,15 +45,25 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
 )
 
-# Add sources to executable
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
-)
-
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${CMAKE_SOURCE_DIR}/steering_wheel/Inc
+    ${CMAKE_SOURCE_DIR}/steering_wheel
 )
+
+file(GLOB STEERING_WHEEL_SOURCES
+    ${CMAKE_SOURCE_DIR}/steering_wheel/Src/*.c
+    # ${CMAKE_SOURCE_DIR}/steering_wheel/ui/*.c
+)
+
+# Add sources to executable
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user sources here
+    ${STEERING_WHEEL_SOURCES}
+    ${LVGL_SOURCES}
+)
+
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
