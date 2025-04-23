@@ -67,7 +67,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = BUTTON_HORN_Pin|BUUTON_FC_RACE_MODE_Pin|BUTTON_FC_PREPARE_TO_RACE_Pin|BUTTON_FC_OFF_Pin;
+  GPIO_InitStruct.Pin = BUTTON_HORN_Pin|BUTTON_FC_RACE_MODE_Pin|BUTTON_FC_PREPARE_TO_RACE_MODE_Pin|BUTTON_FC_OFF_MODE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

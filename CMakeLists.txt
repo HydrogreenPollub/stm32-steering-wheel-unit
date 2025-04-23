@@ -50,11 +50,12 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ${CMAKE_SOURCE_DIR}/steering_wheel/Inc
     ${CMAKE_SOURCE_DIR}/steering_wheel
+    ${CMAKE_SOURCE_DIR}/can_ids
 )
 
 file(GLOB STEERING_WHEEL_SOURCES
     ${CMAKE_SOURCE_DIR}/steering_wheel/Src/*.c
-    # ${CMAKE_SOURCE_DIR}/steering_wheel/ui/*.c
+    //${CMAKE_SOURCE_DIR}/steering_wheel/ui/*.c
 )
 
 # Add sources to executable
