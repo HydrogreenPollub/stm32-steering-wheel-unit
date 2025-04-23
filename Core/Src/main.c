@@ -27,7 +27,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lvgl.h"
+#include "lcd_controller.h"
+#include "button.h"
+#include "can_controller.h"
+#include "ui.h"
+#include "screens.h"
+#include "steering_wheel.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +54,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern lv_meter_indicator_t* indicator1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,13 +103,14 @@ int main(void)
   MX_TIM6_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
-
+  steering_wheel_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    steering_wheel_loop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
