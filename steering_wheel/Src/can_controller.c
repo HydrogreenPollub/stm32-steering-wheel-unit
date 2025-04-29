@@ -4,7 +4,7 @@ CAN_TxHeaderTypeDef tx_header;
 CAN_RxHeaderTypeDef rx_header;
 
 uint8_t rx_data;
-uint8_t tx_data;
+uint8_t tx_data[8];
 
 uint32_t tx_mailbox;
 

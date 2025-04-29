@@ -5,6 +5,7 @@
 #include "stm32l4xx.h"
 #include "can.h"
 #include "can_controller.h"
+#include "ui.h"
 
 typedef struct {
   uint8_t send_vehicle_speed_flag;

@@ -2,6 +2,7 @@
 
 extern TIM_HandleTypeDef htim6;
 
+buttons_states_t button_states;
 
 button_t buttons[NUM_BUTTONS] = {
     {BUTTON_FULL_GAS_GPIO_Port, BUTTON_FULL_GAS_Pin, BUTTON_STATE_RELEASED, 0,
@@ -11,8 +12,8 @@ button_t buttons[NUM_BUTTONS] = {
     {BUTTON_MODE1_GPIO_Port, BUTTON_MODE1_Pin, BUTTON_STATE_RELEASED, 0, 0},
     {BUTTON_MODE2_GPIO_Port, BUTTON_MODE2_Pin, BUTTON_STATE_RELEASED, 0, 0},
     {BUTTON_HORN_GPIO_Port, BUTTON_HORN_Pin, BUTTON_STATE_RELEASED, 0, 0},
-    {BUTTON_TIME_RESET_GPIO_Port, BUTTON_TIME_RESET_Pin, BUTTON_STATE_RELEASED, 0,
-     CAN_ID_IS_TIME_RESET_BUTTON_PRESSED},
+    {BUTTON_TIME_RESET_GPIO_Port, BUTTON_TIME_RESET_Pin, BUTTON_STATE_RELEASED,
+     0, CAN_ID_IS_TIME_RESET_BUTTON_PRESSED},
     {BUTTON_SC_CLOSE_GPIO_Port, BUTTON_SC_CLOSE_Pin, BUTTON_STATE_RELEASED, 0,
      CAN_ID_IS_SC_RELAY_CLOSED},
     {BUTTON_EMERGENCY_GPIO_Port, BUTTON_EMERGENCY_Pin, BUTTON_STATE_RELEASED, 0,
@@ -24,7 +25,6 @@ button_t buttons[NUM_BUTTONS] = {
     {BUTTON_FC_OFF_MODE_GPIO_Port, BUTTON_FC_OFF_MODE_Pin,
      BUTTON_STATE_RELEASED, 0, 0},
 };
-
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
@@ -52,17 +52,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             buttons[i].button_state == BUTTON_STATE_RELEASED) {
 
           buttons[i].button_state = BUTTON_STATE_PRESSED;
-          tx_data = BUTTON_STATE_PRESSED;
+          // tx_data = BUTTON_STATE_PRESSED;
+          button_states.all_button_states |= (1 << i);
+          tx_data[0] = (uint8_t)button_states.all_button_states & 0xFF;
+          tx_data[1] = (uint8_t)(button_states.all_button_states >> 8) & 0xFF;
 
           switch (buttons[i].pin) {
           case BUTTON_FULL_GAS_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           case BUTTON_HALF_GAS_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           case BUTTON_TIME_RESET_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            if (time_reset_button_press_counter > 0) {
+              tx_data[2] = lap_number;
+              tx_data[3] = time.min_counter;
+              tx_data[4] = time.sec_counter;
+              CAN_SendMessage(buttons[i].can_id, tx_data, 5);
+            }
+
+            time_reset_button_press_counter++;
 
             sec_sum += sec_counter;
             min_sum += min_counter;
@@ -80,7 +90,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
             break;
           case BUTTON_SC_CLOSE_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           default:
             break;
@@ -90,21 +100,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                    buttons[i].button_state == BUTTON_STATE_PRESSED) {
 
           buttons[i].button_state = BUTTON_STATE_RELEASED;
-          tx_data = BUTTON_STATE_RELEASED;
+          button_states.all_button_states &= ~(1 << i);
+          tx_data[0] = (uint8_t)button_states.all_button_states & 0xFF;
+          tx_data[1] = (uint8_t)(button_states.all_button_states >> 8) & 0xFF;
 
           switch (buttons[i].pin) {
           case BUTTON_FULL_GAS_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           case BUTTON_HALF_GAS_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           case BUTTON_TIME_RESET_Pin:
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           case BUTTON_SC_CLOSE_Pin:
 
-            CAN_SendMessage(buttons[i].can_id, &tx_data, 1);
+            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
             break;
           default:
             break;
@@ -117,6 +129,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   // {
   //   HAL_TIM_Base_Stop_IT(&htim7);
   //   send_vehicle_speed_flag = 1;
-    
+
   // }
 }

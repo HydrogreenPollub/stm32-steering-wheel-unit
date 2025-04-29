@@ -4,6 +4,7 @@
 volatile flags_t flags;
 volatile time_t time;
 volatile uint8_t lap_number = 0;
+volatile uint8_t time_reset_button_press_counter = 0;
 
 void steering_wheel_init()
 {
