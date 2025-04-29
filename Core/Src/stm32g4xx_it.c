@@ -22,6 +22,8 @@
 #include "stm32g4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lvgl.h"
+#include "steering_wheel.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -190,7 +192,22 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+  if(time_reset_button_press_counter > 0)
+  {
+      time.ms_counter++;
 
+    if (time.ms_counter >= 1000) {
+      time.ms_counter = 0;
+      time.sec_counter++;
+
+      if (time.sec_counter >= 60) {
+        time.sec_counter = 0;
+        time.min_counter++;
+      }
+
+      flags.time_send_flag = 1;
+    }
+  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 
