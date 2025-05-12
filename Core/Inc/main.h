@@ -81,6 +81,8 @@ void Error_Handler(void);
 #define LCD_RST_GPIO_Port GPIOB
 #define LCD_DC_Pin GPIO_PIN_2
 #define LCD_DC_GPIO_Port GPIOB
+#define MCU_LED_Pin GPIO_PIN_10
+#define MCU_LED_GPIO_Port GPIOB
 #define BUTTON_HORN_Pin GPIO_PIN_15
 #define BUTTON_HORN_GPIO_Port GPIOB
 #define BUTTON_HORN_EXTI_IRQn EXTI15_10_IRQn
@@ -102,6 +104,8 @@ void Error_Handler(void);
 #define BUTTON_FC_OFF_MODE_Pin GPIO_PIN_7
 #define BUTTON_FC_OFF_MODE_GPIO_Port GPIOB
 #define BUTTON_FC_OFF_MODE_EXTI_IRQn EXTI9_5_IRQn
+#define CAN_LED_Pin GPIO_PIN_9
+#define CAN_LED_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

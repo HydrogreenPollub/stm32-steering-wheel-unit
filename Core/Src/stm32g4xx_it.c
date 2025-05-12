@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32g4xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32g4xx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -77,9 +77,7 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
-  {
-  }
+    while (1) { }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -188,26 +186,28 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+    lv_tick_inc(1);
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-  if(time_reset_button_press_counter > 0)
-  {
-      time.ms_counter++;
+    if (time_reset_button_press_counter > 0)
+    {
+        time.ms_counter++;
 
-    if (time.ms_counter >= 1000) {
-      time.ms_counter = 0;
-      time.sec_counter++;
+        if (time.ms_counter >= 1000)
+        {
+            time.ms_counter = 0;
+            time.sec_counter++;
 
-      if (time.sec_counter >= 60) {
-        time.sec_counter = 0;
-        time.min_counter++;
-      }
+            if (time.sec_counter >= 60)
+            {
+                time.sec_counter = 0;
+                time.min_counter++;
+            }
 
-      flags.time_send_flag = 1;
+            flags.time_send_flag = 1;
+        }
     }
-  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 
