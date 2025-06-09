@@ -21,7 +21,7 @@ void steering_wheel_loop()
     ui_tick();
     disp_set_time(time.min_counter, time.sec_counter, time.min_sum, time.sec_sum, flags.time_send_flag);
     disp_set_lap_number(params.lap_number, flags.lap_send_flag);
+    disp_set_icon(flags.horn_flag);
     CAN_ReceiveMessage(rx_data);
     // disp_set_sc_voltage(rx_data[0], flags.sc_voltage_send_flag);
-    disp_set_icon(flags.horn_flag);
 }

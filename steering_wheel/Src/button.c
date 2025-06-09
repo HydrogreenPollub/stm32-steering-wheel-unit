@@ -124,8 +124,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
                         case BUTTON_FULL_GAS_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
                             break;
-                        case BUTTON_HALF_GAS_Pin:
+                        case BUTTON_HORN_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
+                            flags.horn_flag = 1;
                             break;
                         case BUTTON_TIME_RESET_Pin:
                             if (time_reset_button_press_counter > 0)
@@ -157,6 +158,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
                         case BUTTON_SC_CLOSE_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
                             break;
+                        case BUTTON_MODE1_Pin:
+                            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
+                            time.sec_counter = 0;
+                            time.min_counter = 0;
+                            time.sec_sum = 0;
+                            time.min_sum = 0;
+                            params.lap_number = 0;
+                            time_reset_button_press_counter = 0;
+
+                            break;
                         default:
                             break;
                     }
@@ -173,14 +184,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
                         case BUTTON_FULL_GAS_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
                             break;
-                        case BUTTON_HALF_GAS_Pin:
+                        case BUTTON_HORN_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
+                            flags.horn_flag = 0;
                             break;
                         case BUTTON_TIME_RESET_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
                             break;
                         case BUTTON_SC_CLOSE_Pin:
 
+                            CAN_SendMessage(buttons[i].can_id, tx_data, 2);
+                            break;
+                        case BUTTON_MODE1_Pin:
                             CAN_SendMessage(buttons[i].can_id, tx_data, 2);
                             break;
                         default:

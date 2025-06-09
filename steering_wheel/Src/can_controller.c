@@ -36,7 +36,7 @@ void CAN_FilterConfig(FDCAN_HandleTypeDef* hfdcan)
     HAL_FDCAN_ConfigFilter(hfdcan, &filterConfig);
 
     filterConfig.FilterIndex = 2;
-    filterConfig.FilterID1 = CAN_ID_FC_VOLTAGE;
+    filterConfig.FilterID1 = CAN_ID_SC_VOLTAGE;
     HAL_FDCAN_ConfigFilter(hfdcan, &filterConfig);
 }
 
@@ -74,22 +74,40 @@ void CAN_ReceiveMessage(uint8_t* data)
     {
         if (tx_header.IdType == FDCAN_STANDARD_ID)
         {
-            if (rx_header.Identifier == CAN_ID_IS_EMERGENCY)
+            switch (rx_header.Identifier)
             {
+                case CAN_ID_IS_EMERGENCY:
                 // send_emergency_msg_flag = 1;
-            }
-            else if (rx_header.Identifier == CAN_ID_VEHICLE_SPEED)
-            {
+                break;
+            case CAN_ID_VEHICLE_SPEED:
                 flags.send_vehicle_speed_flag = 1;
                 params.vehicle_speed = data[0];
                 disp_set_vehicle_speed(params.vehicle_speed, flags.send_vehicle_speed_flag);
-            }
-            else if (rx_header.Identifier == CAN_ID_FC_VOLTAGE)
-            {
+                break;
+
+            case CAN_ID_SC_VOLTAGE:
                 flags.sc_voltage_send_flag = 1;
-                params.sc_voltage = data[0];
-                disp_set_sc_voltage(params.sc_voltage, flags.sc_voltage_send_flag);
+                    params.sc_voltage = data[0];
+                    disp_set_sc_voltage(params.sc_voltage, flags.sc_voltage_send_flag);
+                    break;
+            case CAN_ID_PROTIUM_STATE:
             }
+                // if (rx_header.Identifier == CAN_ID_IS_EMERGENCY)
+                // {
+                //     // send_emergency_msg_flag = 1;
+                // }
+                // else if (rx_header.Identifier == CAN_ID_VEHICLE_SPEED)
+                // {
+                //     flags.send_vehicle_speed_flag = 1;
+                //     params.vehicle_speed = data[0];
+                //     disp_set_vehicle_speed(params.vehicle_speed, flags.send_vehicle_speed_flag);
+                // }
+                // else if (rx_header.Identifier == CAN_ID_SC_VOLTAGE)
+                // {
+                //     flags.sc_voltage_send_flag = 1;
+                //     params.sc_voltage = data[0];
+                //     disp_set_sc_voltage(params.sc_voltage, flags.sc_voltage_send_flag);
+                // }
         }
     }
 }
