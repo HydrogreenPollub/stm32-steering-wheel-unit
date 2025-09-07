@@ -102,6 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM6_Init();
   MX_USB_PCD_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
     steering_wheel_init();
   /* USER CODE END 2 */
@@ -113,7 +114,7 @@ int main(void)
         steering_wheel_loop();
         // HAL_GPIO_TogglePin(MCU_LED_GPIO_Port, MCU_LED_Pin);
         // HAL_GPIO_TogglePin(CAN_LED_GPIO_Port, CAN_LED_Pin);
-        HAL_Delay(5);
+        // HAL_Delay(5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

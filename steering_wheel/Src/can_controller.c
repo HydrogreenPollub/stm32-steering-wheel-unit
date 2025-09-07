@@ -27,12 +27,12 @@ void CAN_FilterConfig(FDCAN_HandleTypeDef* hfdcan)
     filterConfig.FilterIndex = 0;
     filterConfig.FilterType = FDCAN_FILTER_MASK;
     filterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-    filterConfig.FilterID1 = CAN_ID_IS_EMERGENCY;
+    filterConfig.FilterID1 = CAN_ID_SENSOR_SPEED;
     filterConfig.FilterID2 = STANDARD_ID_MASK;
     HAL_FDCAN_ConfigFilter(hfdcan, &filterConfig);
 
     filterConfig.FilterIndex = 1;
-    filterConfig.FilterID1 = CAN_ID_VEHICLE_SPEED;
+    filterConfig.FilterID1 = CAN_ID_MASTER_STATE;
     HAL_FDCAN_ConfigFilter(hfdcan, &filterConfig);
 
     filterConfig.FilterIndex = 2;
@@ -68,46 +68,35 @@ void CAN_SendMessage(uint16_t std_id, uint8_t* data, uint8_t len)
     HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &tx_header, data);
 }
 
-void CAN_ReceiveMessage(uint8_t* data)
+void CAN_ReceiveMessage()
 {
-    if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &rx_header, data) == HAL_OK)
+    if (flags.can_rx_tick_flag)
     {
-        if (tx_header.IdType == FDCAN_STANDARD_ID)
+        if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &rx_header, rx_data) == HAL_OK)
         {
-            switch (rx_header.Identifier)
+            if (rx_header.IdType == FDCAN_STANDARD_ID && rx_header.DataLength == FDCAN_DLC_BYTES_4)
             {
-                case CAN_ID_IS_EMERGENCY:
-                // send_emergency_msg_flag = 1;
-                break;
-            case CAN_ID_VEHICLE_SPEED:
-                flags.send_vehicle_speed_flag = 1;
-                params.vehicle_speed = data[0];
-                disp_set_vehicle_speed(params.vehicle_speed, flags.send_vehicle_speed_flag);
-                break;
+                switch (rx_header.Identifier)
+                {
+                    case CAN_ID_SENSOR_SPEED:
+                        flags.send_vehicle_speed_flag = 1;
+                        memcpy(&params.vehicle_speed, rx_data, sizeof(float));
+                        uint8_t speed = (uint8_t)params.vehicle_speed;
+                        disp_set_vehicle_speed(speed, flags.send_vehicle_speed_flag);
+                        break;
 
-            case CAN_ID_SC_VOLTAGE:
-                flags.sc_voltage_send_flag = 1;
-                    params.sc_voltage = data[0];
-                    disp_set_sc_voltage(params.sc_voltage, flags.sc_voltage_send_flag);
-                    break;
-            case CAN_ID_PROTIUM_STATE:
+                    case CAN_ID_SC_VOLTAGE:
+                        flags.sc_voltage_send_flag = 1;
+                        memcpy(&params.sc_voltage, rx_data, sizeof(float));
+                        uint8_t sc_voltage = (uint8_t)params.sc_voltage;
+                        disp_set_sc_voltage(sc_voltage, flags.sc_voltage_send_flag);
+                        break;
+
+                  default:
+                        break;
+                }
             }
-                // if (rx_header.Identifier == CAN_ID_IS_EMERGENCY)
-                // {
-                //     // send_emergency_msg_flag = 1;
-                // }
-                // else if (rx_header.Identifier == CAN_ID_VEHICLE_SPEED)
-                // {
-                //     flags.send_vehicle_speed_flag = 1;
-                //     params.vehicle_speed = data[0];
-                //     disp_set_vehicle_speed(params.vehicle_speed, flags.send_vehicle_speed_flag);
-                // }
-                // else if (rx_header.Identifier == CAN_ID_SC_VOLTAGE)
-                // {
-                //     flags.sc_voltage_send_flag = 1;
-                //     params.sc_voltage = data[0];
-                //     disp_set_sc_voltage(params.sc_voltage, flags.sc_voltage_send_flag);
-                // }
         }
+        flags.can_rx_tick_flag = 0;
     }
 }

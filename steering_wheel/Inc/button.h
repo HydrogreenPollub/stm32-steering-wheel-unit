@@ -10,7 +10,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define NUM_BUTTONS 11
+#define NUM_BUTTONS           1
+#define NANOSECONDS_IN_SECOND 1000000000ULL
+#define SECONDS_IN_MINUTE     60
 
 typedef enum {
     BUTTON_STATE_PRESSED,
@@ -23,7 +25,7 @@ typedef struct
     uint16_t pin;
     button_state_t button_state;
     bool debouncing_flag;
-    uint32_t can_id;
+    // uint32_t can_id;
 } button_t;
 
 typedef struct __attribute__((packed))
