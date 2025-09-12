@@ -6,6 +6,11 @@ FDCAN_RxHeaderTypeDef rx_header;
 uint8_t rx_data[8];
 uint8_t tx_data[8];
 
+ring_buffer_t speed_ring_buffer;
+ring_buffer_t sc_voltage_ring_buffer;
+uint8_t can_speed_ring_buffer[CAN_FRAMES_POOL_SIZE];
+uint8_t can_sc_voltage_ring_buffer[CAN_FRAMES_POOL_SIZE];
+
 void CAN_Init(FDCAN_HandleTypeDef* hfdcan)
 {
     tx_header.IdType = FDCAN_STANDARD_ID;
@@ -15,8 +20,11 @@ void CAN_Init(FDCAN_HandleTypeDef* hfdcan)
     tx_header.FDFormat = FDCAN_CLASSIC_CAN;
     tx_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
     tx_header.MessageMarker = 0;
+
+    HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_Start(hfdcan);
-    // HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
+    ring_buffer_init(&speed_ring_buffer, can_speed_ring_buffer, CAN_FRAMES_POOL_SIZE);
+    ring_buffer_init(&sc_voltage_ring_buffer, can_sc_voltage_ring_buffer, CAN_FRAMES_POOL_SIZE);
 }
 
 void CAN_FilterConfig(FDCAN_HandleTypeDef* hfdcan)
@@ -40,25 +48,6 @@ void CAN_FilterConfig(FDCAN_HandleTypeDef* hfdcan)
     HAL_FDCAN_ConfigFilter(hfdcan, &filterConfig);
 }
 
-// void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-
-//     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, &rx_data) ==
-//         HAL_OK) {
-//       if (rx_header.IDE == CAN_ID_STD) {
-//         if (rx_header.StdId == CAN_ID_IS_EMERGENCY) {
-//           send_emergency_msg_flag = 1;
-//         } else if (rx_header.StdId == CAN_ID_VEHICLE_SPEED) {
-//           speed = rx_data;
-//           send_vehicle_speed_flag = 1;
-//           // disp_set_vehicle_speed(speed, send_vehicle_speed_flag);
-//           // printf("data = %u\n", speed);
-
-//           // __HAL_TIM_SET_COUNTER(&htim7, 0);
-//           // HAL_TIM_Base_Start_IT(&htim7);
-//         }
-//       }
-//     }
-// }
 
 void CAN_SendMessage(uint16_t std_id, uint8_t* data, uint8_t len)
 {
@@ -68,9 +57,42 @@ void CAN_SendMessage(uint16_t std_id, uint8_t* data, uint8_t len)
     HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &tx_header, data);
 }
 
-void CAN_ReceiveMessage()
+// void CAN_ReceiveMessage()
+// {
+//     if (flags.can_rx_tick_flag)
+//     {
+//         if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &rx_header, rx_data) == HAL_OK)
+//         {
+//             if (rx_header.IdType == FDCAN_STANDARD_ID && rx_header.DataLength == FDCAN_DLC_BYTES_4)
+//             {
+//                 switch (rx_header.Identifier)
+//                 {
+//                     case CAN_ID_SENSOR_SPEED:
+//                         flags.send_vehicle_speed_flag = 1;
+//                         memcpy(&params.vehicle_speed, rx_data, sizeof(float));
+//                         uint8_t speed = (uint8_t)params.vehicle_speed;
+//                         disp_set_vehicle_speed(speed, flags.send_vehicle_speed_flag);
+//                         break;
+//
+//                     case CAN_ID_SC_VOLTAGE:
+//                         flags.sc_voltage_send_flag = 1;
+//                         memcpy(&params.sc_voltage, rx_data, sizeof(float));
+//                         uint8_t sc_voltage = (uint8_t)params.sc_voltage;
+//                         disp_set_sc_voltage(sc_voltage, flags.sc_voltage_send_flag);
+//                         break;
+//
+//                   default:
+//                         break;
+//                 }
+//             }
+//         }
+//         flags.can_rx_tick_flag = 0;
+//     }
+// }
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-    if (flags.can_rx_tick_flag)
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
     {
         if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &rx_header, rx_data) == HAL_OK)
         {
@@ -82,21 +104,38 @@ void CAN_ReceiveMessage()
                         flags.send_vehicle_speed_flag = 1;
                         memcpy(&params.vehicle_speed, rx_data, sizeof(float));
                         uint8_t speed = (uint8_t)params.vehicle_speed;
-                        disp_set_vehicle_speed(speed, flags.send_vehicle_speed_flag);
+                        ring_buffer_enqueue(&speed_ring_buffer, speed);
                         break;
 
                     case CAN_ID_SC_VOLTAGE:
                         flags.sc_voltage_send_flag = 1;
                         memcpy(&params.sc_voltage, rx_data, sizeof(float));
                         uint8_t sc_voltage = (uint8_t)params.sc_voltage;
-                        disp_set_sc_voltage(sc_voltage, flags.sc_voltage_send_flag);
+                        ring_buffer_enqueue(&sc_voltage_ring_buffer, sc_voltage);
                         break;
 
-                  default:
+                    default:
                         break;
                 }
             }
         }
-        flags.can_rx_tick_flag = 0;
     }
 }
+
+void CAN_ProcessData(void)
+{
+    uint8_t speed, sc_voltage;
+    if (flags.update_can_rx_params_flag)
+    {
+        if (ring_buffer_dequeue(&speed_ring_buffer, &speed))
+        {
+            disp_set_vehicle_speed(speed, flags.send_vehicle_speed_flag);
+        }
+        else if (ring_buffer_dequeue(&sc_voltage_ring_buffer, &sc_voltage))
+        {
+            disp_set_sc_voltage(sc_voltage, flags.sc_voltage_send_flag);
+        }
+        flags.update_can_rx_params_flag = 0;
+    }
+}
+
