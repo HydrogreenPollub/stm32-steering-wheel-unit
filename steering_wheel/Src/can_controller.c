@@ -129,11 +129,11 @@ void CAN_ProcessData(void)
     {
         if (ring_buffer_dequeue(&speed_ring_buffer, &speed))
         {
-            disp_set_vehicle_speed(speed, flags.send_vehicle_speed_flag);
+            disp_set_vehicle_speed(speed);
         }
-        else if (ring_buffer_dequeue(&sc_voltage_ring_buffer, &sc_voltage))
+        if (ring_buffer_dequeue(&sc_voltage_ring_buffer, &sc_voltage))
         {
-            disp_set_sc_voltage(sc_voltage, flags.sc_voltage_send_flag);
+            disp_set_sc_voltage(sc_voltage);
         }
         flags.update_can_rx_params_flag = 0;
     }
