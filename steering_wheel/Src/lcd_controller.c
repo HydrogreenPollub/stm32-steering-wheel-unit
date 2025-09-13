@@ -175,23 +175,24 @@ void disp_set_lap_number(uint8_t lap_number, uint8_t lap_send_flag)
     }
 }
 
-void disp_set_vehicle_speed(uint8_t rx_data, uint8_t send_vehicle_speed_flag)
+void disp_set_vehicle_speed(uint8_t rx_data)
 {
     char buffer_speed[20];
-    if (send_vehicle_speed_flag)
+    if (flags.send_vehicle_speed_flag)
     {
-        send_vehicle_speed_flag = 0;
+        flags.send_vehicle_speed_flag = 0;
         sprintf(buffer_speed, "%u", rx_data);
         lv_meter_set_indicator_value(objects.speed_meter, indicator1, rx_data);
         lv_textarea_set_text(objects.speed_area, buffer_speed);
     }
 }
 
-void disp_set_sc_voltage(uint8_t voltage, uint8_t sc_voltage_send_flag)
+void disp_set_sc_voltage(uint8_t voltage)
 {
     char buffer_sc_voltage[20];
-    if (sc_voltage_send_flag)
+    if (flags.sc_voltage_send_flag)
     {
+        flags.sc_voltage_send_flag = 0;
         lv_bar_set_value(objects.sc_voltage_bar, voltage, LV_ANIM_ON);
         sprintf(buffer_sc_voltage, "%u V", voltage);
         lv_label_set_text(objects.sc_voltage, buffer_sc_voltage);
